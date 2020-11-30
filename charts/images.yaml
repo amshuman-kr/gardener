@@ -222,7 +222,7 @@ images:
 - name: hvpa-controller
   sourceRepository: github.com/gardener/hvpa-controller
   repository: eu.gcr.io/gardener-project/gardener/hvpa-controller
-  tag: "v0.3.1"
+  tag: "v0.4.0-dev-01fd775a2cd87096b24fd61487e8370d9e336601"
 
 # Istio
 - name: istio-proxy

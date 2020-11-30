@@ -960,7 +960,7 @@ func (b *Botanist) DeployKubeAPIServer(ctx context.Context) error {
 			},
 		}
 		minReplicas int32 = 1
-		maxReplicas int32 = 4
+		maxReplicas int32 = 6
 
 		shootNetworks = map[string]interface{}{
 			"services": b.Shoot.Networks.Services.String(),

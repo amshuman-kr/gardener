@@ -131,29 +131,27 @@ global:
     vpa: false
     hvpa:
       enabled: false
-      maxReplicas: 4
+      maxReplicas: 5
       minReplicas: 1
       targetAverageUtilizationCpu: 80
       targetAverageUtilizationMemory: 80
-      vpaScaleUpMode: "Auto"
-      vpaScaleDownMode: "Auto"
-      vpaScaleUpStabilization:
-        stabilizationDuration: "3m"
+      scaleUpStabilization:
+        stabilizationDuration: "8m"
         minChange:
           cpu:
-            value: 300m
+            value: 800m
             percentage: 80
           memory:
-            value: 200M
+            value: 800M
             percentage: 80
-      vpaScaleDownStabilization:
+      scaleDownStabilization:
         stabilizationDuration: "15m"
         minChange:
           cpu:
-            value: 600m
+            value: 1000m
             percentage: 80
           memory:
-            value: 600M
+            value: 1200M
             percentage: 80
       limitsRequestsGapScaleParams:
         cpu:

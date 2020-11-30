@@ -1,7 +1,7 @@
 {{ if .Values.hvpa.enabled }}
 {{- /* .Values.replicas is of type 'float64', so let's cast it to string to have proper types for comparison */}}
 {{- if ne (.Values.replicas | toString) "0" }}
-apiVersion: autoscaling.k8s.io/v1alpha1
+apiVersion: autoscaling.gardener.cloud/v1alpha1
 kind: Hvpa
 metadata:
   name: kube-apiserver
@@ -12,17 +12,23 @@ spec:
   maintenanceTimeWindow:
 {{ toYaml .Values.maintenanceWindow | indent 4 }}
 {{- end }}
+  scaleUp:
+    updatePolicy:
+      updateMode: "Auto"
+{{- if .Values.scaleUpStabilization }}
+{{ toYaml .Values.scaleUpStabilization | indent 4 }}
+{{- end }}
+  scaleDown:
+    updatePolicy:
+      updateMode: "Auto"
+{{- if .Values.scaleDownStabilization }}
+{{ toYaml .Values.scaleDownStabilization | indent 4 }}
+{{- end }}
   hpa:
     selector:
       matchLabels:
         role: apiserver-hpa
-    deploy: true
-    scaleUp:
-      updatePolicy:
-        updateMode: "Auto"
-    scaleDown:
-      updatePolicy:
-        updateMode: "Auto"
+    deploy: false
     template:
       metadata:
         labels:
@@ -46,18 +52,6 @@ spec:
       matchLabels:
         role: apiserver-vpa
     deploy: true
-    scaleUp:
-      updatePolicy:
-        updateMode: "Auto"
-{{- if .Values.scaleUpStabilization }}
-{{ toYaml .Values.scaleUpStabilization | indent 6 }}
-{{- end }}
-    scaleDown:
-      updatePolicy:
-        updateMode: "Auto"
-{{- if .Values.scaleDownStabilization }}
-{{ toYaml .Values.scaleDownStabilization | indent 6 }}
-{{- end }}
 {{- if .Values.limitsRequestsGapScaleParams }}
     limitsRequestsGapScaleParams:
 {{ toYaml .Values.limitsRequestsGapScaleParams | indent 6 }}
@@ -71,22 +65,30 @@ spec:
           containerPolicies:
             - containerName: kube-apiserver
               maxAllowed:
-                memory: 25G
+                memory: 32G
                 cpu: "8"
               minAllowed:
                 memory: 400M
                 cpu: 300m
             - containerName: vpn-seed
               mode: "Off"
-  weightBasedScalingIntervals:
-{{- if gt (int .Values.maxReplicas) (int .Values.minReplicas) }}
-    - vpaWeight: 0
-      startReplicaCount: {{ .Values.minReplicas }}
-      lastReplicaCount: {{ sub (int .Values.maxReplicas) 1 }}
-{{- end }}
-    - vpaWeight: 100
-      startReplicaCount: {{ .Values.maxReplicas }}
-      lastReplicaCount: {{ .Values.maxReplicas }}
+  scaleIntervals:
+    - maxReplicas: 1
+      maxCpu: "0.4"
+      maxMemory: 1G
+    - maxReplicas: 2
+      maxCpu: "0.6"
+      maxMemory: 1.5G
+    - maxReplicas: 3
+      maxCpu: "0.8"
+      maxMemory: 2G
+    - maxReplicas: 4
+      maxCpu: "1"
+      maxMemory: 2.75G
+    - maxReplicas: 5
+      maxCpu: "1.5"
+      maxMemory: 4G
+    - maxReplicas: 6
   targetRef:
     apiVersion: {{ include "deploymentversion" . }}
     kind: Deployment

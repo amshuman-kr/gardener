@@ -121,16 +121,16 @@ apiAudiences:
 #  signingKey: <private key in PEM format>
 
 hvpa:
-  enabled: false
+  enabled: true
 
 scaleUpStabilization:
-  stabilizationDuration: "3m"
+  stabilizationDuration: "8m"
   minChange:
     cpu:
-      value: 300m
+      value: 1000m
       percentage: 80
     memory:
-      value: 200M
+      value: 1000M
       percentage: 80
 
 scaleDownStabilization:
@@ -145,10 +145,10 @@ scaleDownStabilization:
 
 limitsRequestsGapScaleParams:
   cpu:
-    value: "1"
+    value: "2"
     percentage: 70
   memory:
-    value: "1G"
+    value: "2.5"
     percentage: 70
 
 sni:

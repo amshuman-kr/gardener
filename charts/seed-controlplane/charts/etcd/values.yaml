@@ -45,7 +45,7 @@ sidecar:
 storageCapacity: 16Gi
 
 hvpa:
-  enabled: false
+  enabled: true
   maxAllowed:
     cpu: "4"
     memory: 30G
@@ -60,10 +60,8 @@ hvpa:
     minChange:
       cpu:
         value: "1"
-        percentage: 80
       memory:
         value: 2G
-        percentage: 80
   scaleDownStabilization:
     stabilizationDuration: "15m"
     minChange:
@@ -75,8 +73,8 @@ hvpa:
         percentage: 80
   limitsRequestsGapScaleParams:
     cpu:
-      value: "1"
+      value: "2"
       percentage: 40
     memory:
-      value: "1G"
+      value: "3.5G"
       percentage: 40

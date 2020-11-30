@@ -1,7 +1,7 @@
 {{- if and .Values.global.apiserver.enabled .Values.global.apiserver.hvpa.enabled }}
 {{- /* .Values.global.apiserver.replicaCount is of type 'float64', so let's cast it to string to have proper types for comparison */}}
 {{- if ne (.Values.global.apiserver.replicaCount | toString) "0" }}
-apiVersion: autoscaling.k8s.io/v1alpha1
+apiVersion: autoscaling.gardener.cloud/v1alpha1
 kind: Hvpa
 metadata:
   name: gardner-apiserver-hvpa
@@ -18,17 +18,23 @@ spec:
   maintenanceTimeWindow:
 {{ toYaml .Values.global.apiserver.hvpa.maintenanceWindow | indent 4 }}
 {{- end }}
+  scaleUp:
+    updatePolicy:
+      updateMode: "Auto"
+{{- if .Values.global.apiserver.hvpa.scaleUpstabilization }}
+{{ toYaml .Values.global.apiserver.hvpa.scaleUpstabilization | indent 4 }}
+{{- end }}
+  scaleDown:
+    updatePolicy:
+      updateMode: "Auto"
+{{- if .Values.global.apiserver.hvpa.scaleDownstabilization }}
+{{ toYaml .Values.global.apiserver.hvpa.scaleDownstabilization | indent 4 }}
+{{- end }}
   hpa:
     selector:
       matchLabels:
         role: gardener-apiserver-hpa
-    deploy: true
-    scaleUp:
-      updatePolicy:
-        updateMode: "Auto"
-    scaleDown:
-      updatePolicy:
-        updateMode: "Auto"
+    deploy: false
     template:
       metadata:
         labels:
@@ -50,18 +56,6 @@ spec:
       matchLabels:
         role: gardener-apiserver-vpa
     deploy: true
-    scaleUp:
-      updatePolicy:
-        updateMode: {{ .Values.global.apiserver.hvpa.vpaScaleUpMode }}
-{{- if .Values.global.apiserver.hvpa.vpaScaleUpStabilization }}
-{{ toYaml .Values.global.apiserver.hvpa.vpaScaleUpStabilization | indent 6 }}
-{{- end }}
-    scaleDown:
-      updatePolicy:
-        updateMode: {{ .Values.global.apiserver.hvpa.vpaScaleDownMode }}
-{{- if .Values.global.apiserver.hvpa.vpaScaleDownStabilization }}
-{{ toYaml .Values.global.apiserver.hvpa.vpaScaleDownStabilization | indent 6 }}
-{{- end }}
 {{- if .Values.global.apiserver.hvpa.limitsRequestsGapScaleParams }}
     limitsRequestsGapScaleParams:
 {{ toYaml .Values.global.apiserver.hvpa.limitsRequestsGapScaleParams | indent 6 }}
@@ -75,20 +69,27 @@ spec:
           containerPolicies:
             - containerName: gardener-apiserver
               maxAllowed:
-                memory: 25G
+                memory: 32G
                 cpu: "8"
               minAllowed:
                 memory: 400M
                 cpu: 400m
-  weightBasedScalingIntervals:
-{{- if gt (int .Values.global.apiserver.hvpa.maxReplicas) (int .Values.global.apiserver.hvpa.minReplicas) }}
-    - vpaWeight: 0
-      startReplicaCount: {{ .Values.global.apiserver.hvpa.minReplicas }}
-      lastReplicaCount: {{ sub (int .Values.global.apiserver.hvpa.maxReplicas) 1 }}
-{{- end }}
-    - vpaWeight: 100
-      startReplicaCount: {{ .Values.global.apiserver.hvpa.maxReplicas }}
-      lastReplicaCount: {{ .Values.global.apiserver.hvpa.maxReplicas }}
+  scaleIntervals:
+    - maxReplicas: 1
+      maxCpu: 0.5
+      maxMemory: 2
+    - maxReplicas: 2
+      maxCpu: 1
+      maxMemory: 4
+    - maxReplicas: 3
+      maxCpu: 2
+      maxMemory: 8
+    - maxReplicas: 4
+      maxCpu: 4
+      maxMemory: 16
+    - maxReplicas: 5
+      maxCpu: 8
+      maxMemory: 32
   targetRef:
     apiVersion: {{ include "deploymentversion" . }}
     kind: Deployment
